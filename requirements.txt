@@ -1,0 +1,15 @@
+aws-cdk-lib==2.142.1
+constructs>=10.0.0,<11.0.0
+streamlit
+pandas
+numpy
+matplotlib
+boto3
+botocore
+streamlit-feedback
+LangChain
+faiss-cpu
+altair==4.0
+tqdm
+langchain-community 
+langchain-core

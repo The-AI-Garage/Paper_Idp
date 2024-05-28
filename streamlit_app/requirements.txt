@@ -1,0 +1,13 @@
+streamlit
+pandas
+numpy
+matplotlib
+boto3
+botocore
+streamlit-feedback
+LangChain
+faiss-cpu
+tqdm
+altair==4.0
+langchain-community 
+langchain-core
