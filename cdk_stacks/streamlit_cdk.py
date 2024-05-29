@@ -6,9 +6,11 @@ from aws_cdk import (
     aws_ecs_patterns as ecs_patterns,
     Stack,
     Duration,
-    aws_ecr_assets
+    aws_ecr_assets,
+    aws_lambda
 )
 from constructs import Construct
+import os
 
 class CdkStack(Stack):
 
@@ -72,3 +74,39 @@ class CdkStack(Stack):
             scale_in_cooldown=Duration.seconds(60),
             scale_out_cooldown=Duration.seconds(60),
         )
+        
+        # Policy for lambda function
+        lambda_policy_doc = iam.PolicyDocument(
+            statements=[
+                # bedrock policy
+                iam.PolicyStatement(
+                    actions=[
+                        "bedrock:InvokeModel",
+                        "bedrock:InvokeModelWithResponseStream"
+                        ],
+                    effect=iam.Effect.ALLOW,
+                    resources=['*']
+                )
+            ]
+        )
+        lambda_policy = iam.Policy(self,
+                                   'lambda-permissions',
+                                   document=lambda_policy_doc,
+                                   policy_name='policy-for-langchain-lambda')
+        lambda_role = iam.Role(self,
+                               'lambda-role',
+                               assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+                               role_name='role-for-langchain-lambda')
+        
+        lambda_role.attach_inline_policy(lambda_policy)
+
+        # create a lambda function with docker
+        dockerfileDir = os.path.join('../', 'lambda')
+        aws_lambda.DockerImageFunction(self, 'LambdaDockerImage',
+                                       code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir, 
+                                                                        platform= aws_ecr_assets.Platform.LINUX_AMD64),
+                                       function_name='LangchainOrquestrator',
+                                       timeout=Duration.minutes(15),
+                                       vpc= vpc,
+                                       role= lambda_role
+                                       )
