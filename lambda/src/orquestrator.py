@@ -1,10 +1,6 @@
-import pandas as pd
-import numpy as np
-import re
 from tqdm.auto import tqdm
 import boto3
 
-from langchain_community.document_loaders import AmazonTextractPDFLoader
 from langchain_aws import ChatBedrock
 from langchain.llms import Bedrock
 from langchain.chains import LLMChain
@@ -61,12 +57,17 @@ def main (event, context):
     prompt_cls, prompt_key = prompt_builder()
     # inference classification
     llm_chain = LLMChain(prompt=prompt_cls, llm=bedrock_llm)
-    llm_response = llm_chain.invoke(summary['output_text'])
+    llm_response_clas = llm_chain.invoke(summary['output_text'])
     # inference keypoints
     llm_chain2 = LLMChain(prompt=prompt_key, llm=bedrock_llm)
-    llm_response2 = llm_chain2.invoke(document[0].page_content)
+    llm_response_key = llm_chain2.invoke(document[0].page_content)
 
-    return llm_response, llm_response2
+    return {
+        'statusCode': 200,
+        'llm_response_clas': llm_response_clas,
+        'llm_response_key': llm_response_key,
+        'summarization': summary['output_text']
+    }, 
 
 if __name__ == '__main__': 
     main()
