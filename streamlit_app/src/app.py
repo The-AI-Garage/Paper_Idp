@@ -4,12 +4,6 @@ import re
 from tqdm.auto import tqdm
 import boto3
 
-from langchain_community.chat_models import BedrockChat
-from langchain.llms import Bedrock
-from langchain.chains import LLMChain
-from langchain_community.embeddings import BedrockEmbeddings
-from few_shot import build_prompt
-
 st.set_page_config(
     page_title="IT ticket classifier",
     page_icon="🤖",
