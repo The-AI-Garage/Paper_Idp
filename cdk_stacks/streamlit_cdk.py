@@ -56,14 +56,6 @@ class CdkStack(Stack):
             memory_limit_mib=4096,      # Default is 512
             public_load_balancer=True)  # Default is True
 
-        # Add policies to task role
-        # fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(
-        #     effect=iam.Effect.ALLOW,
-        #     actions = ["rekognition:*"],
-        #     resources = ["*"],
-        #     )
-        # )
-
         # Setup task auto-scaling
         scaling = fargate_service.service.auto_scale_task_count(
             max_capacity=10
@@ -102,7 +94,7 @@ class CdkStack(Stack):
 
         # create a lambda function with docker
         dockerfileDir = os.path.join('../', 'lambda')
-        aws_lambda.DockerImageFunction(self, 'LambdaDockerImage',
+        lambda_function = aws_lambda.DockerImageFunction(self, 'LambdaDockerImage',
                                        code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir, 
                                                                         platform= aws_ecr_assets.Platform.LINUX_AMD64),
                                        function_name='LangchainOrquestrator',
@@ -110,3 +102,11 @@ class CdkStack(Stack):
                                        vpc= vpc,
                                        role= lambda_role
                                        )
+        
+        # Add policies to task role
+        fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions = ["lambda:InvokeFunction"],
+            resources = [lambda_function.function_arn],
+            )
+        )
