@@ -12,6 +12,7 @@ from langchain_core.example_selectors import (
     MaxMarginalRelevanceExampleSelector,
     SemanticSimilarityExampleSelector,
 )
+from langchain_community.document_loaders import AmazonTextractPDFLoader
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from Prompts import examples, prompt_classification, suffix_template, prompt_keypoints
 
@@ -48,7 +49,13 @@ def prompt_builder():
 
 
 def main (event, context):
-    document = event['Payload']['document']
+    #convert pdf to text and load paper
+    file_name = event['Payload']['filename']
+    file_s3_path = "s3://llm-showcase/papers/" + file_name
+    loader = AmazonTextractPDFLoader(file_s3_path)
+    document = loader.load()
+    
+    #document = event['Payload']['document']
     # summarize text
     bedrock_llm = ChatBedrock(client=bedrock, model_id="anthropic.claude-3-sonnet-20240229-v1:0")
     summary_chain = load_summarize_chain(llm=bedrock_llm, chain_type='map_reduce')

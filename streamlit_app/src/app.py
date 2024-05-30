@@ -4,7 +4,7 @@ import re
 from tqdm.auto import tqdm
 import boto3
 import json
-from langchain_community.document_loaders import AmazonTextractPDFLoader
+#from langchain_community.document_loaders import AmazonTextractPDFLoader
 import os
 
 st.set_page_config(
@@ -42,15 +42,17 @@ def main():
         st.success(f"File {file.name} uploaded and saved successfully in S3!")
          
         # convert pdf to text and load paper
-        file_s3_path = "s3://llm-showcase/papers/" + file.name 
-        loader = AmazonTextractPDFLoader(file_s3_path)
-        document = loader.load()
-        function_params = {"document": document}
+        # file_s3_path = "s3://llm-showcase/papers/" + file.name 
+        # loader = AmazonTextractPDFLoader(file_s3_path)
+        # document = loader.load()
+        # function_params = {"document": document}
         # call orquestrator lambda
+        function_params = {"filename": file.name}
         response = lambda_client.invoke(
             FunctionName='LangchainOrquestrator',
             Payload=json.dumps(function_params),
         )
+        st.success(f"Response from lambda!")
         # parse response
         llm_classifier_resp = response['Payload']['llm_response_clas']
         llm_key_resp = response['Payload']['llm_response_key']
