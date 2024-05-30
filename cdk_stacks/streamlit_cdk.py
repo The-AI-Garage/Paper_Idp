@@ -134,3 +134,13 @@ class CdkStack(Stack):
             resources = ["arn:aws:s3:::llm-showcase", "arn:aws:s3:::llm-showcase/*"],
             )
         )
+        fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions = [
+                    "textract:StartDocumentTextDetection",
+                    "textract:StartDocumentAnalysis",
+                    "textract:GetDocumentTextDetection",
+                    "textract:GetDocumentAnalysis"],
+            resources = ["*"],
+            )
+        )
