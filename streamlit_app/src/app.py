@@ -19,7 +19,7 @@ st.markdown(
 )
 
 lambda_client = boto3.client(region_name= 'us-east-1', service_name='lambda')
-s3 = boto3.clien('s3')
+s3 = boto3.client('s3')
 
 def main():
     
