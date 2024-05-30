@@ -53,7 +53,7 @@ def main():
             Payload=json.dumps(function_params),
         )
         st.success(f"Response from lambda!")
-        st.write()
+        
         # parse response
         response_json = json.load(response['Payload'])
         llm_classifier_resp = response_json['llm_response_clas']
