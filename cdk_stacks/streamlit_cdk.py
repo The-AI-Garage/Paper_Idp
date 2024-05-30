@@ -123,3 +123,14 @@ class CdkStack(Stack):
             resources = [lambda_function.function_arn],
             )
         )
+        fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions = ["s3:GetObject",
+                    "s3:GetBucketLocation",
+                    "s3:ListBucket",
+                    "s3:ListBucketMultipartUploads",
+                    "s3:ListMultipartUploadParts",
+                    "s3:PutObject"],
+            resources = ["arn:aws:s3:::llm-showcase", "arn:aws:s3:::llm-showcase/*"],
+            )
+        )

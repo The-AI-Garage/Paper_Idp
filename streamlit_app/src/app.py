@@ -19,6 +19,7 @@ st.markdown(
 )
 
 lambda_client = boto3.client(region_name= 'us-east-1', service_name='lambda')
+s3 = boto3.clien('s3')
 
 def main():
     
@@ -34,10 +35,15 @@ def main():
         with open(file_path, "wb") as f:
             f.write(file.getbuffer())
 
-        st.success(f"File {file.name} uploaded and saved successfully!")
-        #file_path = 
+        #upload to s3. (Amazontextract need to pull the document from s3 went it has multiple pages)
+        object_key = f'llm-showcase/{file.name}'
+        bucket_name = 'llm-showcase'
+        s3.upload_file(file_path, bucket_name, object_key)
+        st.success(f"File {file.name} uploaded and saved successfully in S3!")
+         
         # convert pdf to text and load paper
-        loader = AmazonTextractPDFLoader(file_path)
+        file_s3_path = "s3://llm-showcase/" + file.name 
+        loader = AmazonTextractPDFLoader(file_s3_path)
         document = loader.load()
         function_params = {"document": document}
         # call orquestrator lambda
