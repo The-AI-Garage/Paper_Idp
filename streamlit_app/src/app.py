@@ -5,6 +5,7 @@ from tqdm.auto import tqdm
 import boto3
 import json
 from langchain_community.document_loaders import AmazonTextractPDFLoader
+import os
 
 st.set_page_config(
     page_title="Clasificador de papers",
@@ -24,8 +25,19 @@ def main():
     st.sidebar.success("Select a function.")
     file = st.file_uploader('Sube un paper cientifico', type = ['pdf'])
     if file != None:
+        # Save the uploaded PDF file locally
+        file_path = os.path.join("uploaded_files", file.name)
+        if os.path.exists('uploaded_files'):
+            pass
+        else:
+            os.mkdir('uploaded_files')
+        with open(file_path, "wb") as f:
+            f.write(file.getbuffer())
+
+        st.success(f"File {file.name} uploaded and saved successfully!")
+        #file_path = 
         # convert pdf to text and load paper
-        loader = AmazonTextractPDFLoader(file)
+        loader = AmazonTextractPDFLoader(file_path)
         document = loader.load()
         function_params = {"document": document}
         # call orquestrator lambda

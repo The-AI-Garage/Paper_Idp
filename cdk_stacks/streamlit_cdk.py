@@ -78,6 +78,18 @@ class CdkStack(Stack):
                         ],
                     effect=iam.Effect.ALLOW,
                     resources=['*']
+                ),
+                iam.PolicyStatement(
+                    actions=[
+                        "ec2:DescribeInstances",
+                        "ec2:CreateNetworkInterface",
+                        "ec2:AttachNetworkInterface",
+                        "ec2:DescribeNetworkInterfaces",
+                        "autoscaling:CompleteLifecycleAction",
+                        "ec2:DeleteNetworkInterface"
+                        ],
+                    effect=iam.Effect.ALLOW,
+                    resources=['*']
                 )
             ]
         )
