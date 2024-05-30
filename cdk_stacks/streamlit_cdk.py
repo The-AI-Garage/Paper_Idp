@@ -79,6 +79,7 @@ class CdkStack(Stack):
                     effect=iam.Effect.ALLOW,
                     resources=['*']
                 ),
+                # ec2 network policy
                 iam.PolicyStatement(
                     actions=[
                         "ec2:DescribeInstances",
@@ -90,6 +91,30 @@ class CdkStack(Stack):
                         ],
                     effect=iam.Effect.ALLOW,
                     resources=['*']
+                ),
+                # textract policy
+                iam.PolicyStatement(
+                    actions=[
+                        "textract:StartDocumentTextDetection",
+                        "textract:StartDocumentAnalysis",
+                        "textract:GetDocumentTextDetection",
+                        "textract:GetDocumentAnalysis"
+                        ],
+                    effect=iam.Effect.ALLOW,
+                    resources=['*']
+                ),
+                # s3 policy
+                iam.PolicyStatement(
+                    actions=[
+                        "s3:GetObject",
+                        "s3:GetBucketLocation",
+                        "s3:ListBucket",
+                        "s3:ListBucketMultipartUploads",
+                        "s3:ListMultipartUploadParts",
+                        "s3:PutObject"
+                        ],
+                    effect=iam.Effect.ALLOW,
+                    resources=["arn:aws:s3:::llm-showcase", "arn:aws:s3:::llm-showcase/*"]
                 )
             ]
         )
