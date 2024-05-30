@@ -53,10 +53,12 @@ def main():
             Payload=json.dumps(function_params),
         )
         st.success(f"Response from lambda!")
+        st.write()
         # parse response
-        llm_classifier_resp = response['Payload']['llm_response_clas']
-        llm_key_resp = response['Payload']['llm_response_key']
-        llm_summarization = response['Payload']['summarization']
+        response_json = json.load(response['Payload'])
+        llm_classifier_resp = response_json['llm_response_clas']
+        llm_key_resp = response_json['llm_response_key']
+        llm_summarization = response_json['summarization']
 
         classifier_output = re.findall("<label>(.*?)</label>", llm_classifier_resp['text'])
         summarization_output = llm_summarization
@@ -64,9 +66,9 @@ def main():
         extracted_title = re.findall("<title>(.*?)</title>", llm_key_resp['text'])
 
         st.write('Categoria: ', classifier_output)
-        st.write('Resumen: ', classifier_output)
-        st.write('Autor: ', classifier_output)
-        st.write('Titulo: ', classifier_output)
+        st.write('Resumen: ', summarization_output)
+        st.write('Autor: ', extracted_author)
+        st.write('Titulo: ', extracted_title)
 
 if __name__ == '__main__': 
     main()
