@@ -36,13 +36,13 @@ def main():
             f.write(file.getbuffer())
 
         #upload to s3. (Amazontextract need to pull the document from s3 went it has multiple pages)
-        object_key = f'llm-showcase/{file.name}'
+        object_key = f'papers/{file.name}'
         bucket_name = 'llm-showcase'
         s3.upload_file(file_path, bucket_name, object_key)
         st.success(f"File {file.name} uploaded and saved successfully in S3!")
          
         # convert pdf to text and load paper
-        file_s3_path = "s3://llm-showcase/" + file.name 
+        file_s3_path = "s3://llm-showcase/papers/" + file.name 
         loader = AmazonTextractPDFLoader(file_s3_path)
         document = loader.load()
         function_params = {"document": document}
