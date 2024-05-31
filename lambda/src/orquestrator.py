@@ -51,8 +51,8 @@ def prompt_builder():
 
 def main (event, context):
     #convert pdf to text and load paper
-    event_json = json.load(event['Payload'])
-    file_name = event_json['filename']
+    #event_json = json.load(event['Payload'])
+    file_name = event['filename']
     file_s3_path = "s3://llm-showcase/papers/" + file_name
     loader = AmazonTextractPDFLoader(file_s3_path)
     document = loader.load()
@@ -76,7 +76,4 @@ def main (event, context):
         'llm_response_clas': llm_response_clas,
         'llm_response_key': llm_response_key,
         'summarization': summary['output_text']
-    }, 
-
-if __name__ == '__main__': 
-    main()
+    }
