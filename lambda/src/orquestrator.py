@@ -55,8 +55,7 @@ def main (event, context):
     print('event: ',event)
     file_name = event['filename']
     print('file_name: ',file_name)
-    file_s3_path = "s3://llm-showcase/papers/" + file_name
-    loader = AmazonTextractPDFLoader(file_s3_path)
+    loader = AmazonTextractPDFLoader(file_name)
     document = loader.load()
     print('document: ',document)
     #document = event['Payload']['document']
