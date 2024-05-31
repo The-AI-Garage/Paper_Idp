@@ -56,6 +56,8 @@ def main():
         
         # parse response
         response_json = json.load(response['Payload'])
+        st.write('response', response)
+        st.write('response_json', response_json)
         llm_classifier_resp = response_json['llm_response_clas']
         llm_key_resp = response_json['llm_response_key']
         llm_summarization = response_json['summarization']
