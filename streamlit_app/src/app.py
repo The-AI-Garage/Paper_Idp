@@ -6,12 +6,13 @@ import boto3
 import json
 #from langchain_community.document_loaders import AmazonTextractPDFLoader
 import os
+import time
 
 st.set_page_config(
-    page_title="Clasificador de papers",
+    page_title="Biblioteca de papers",
     page_icon="🤖",
     )
-st.title('Clasificador de papers cientificos 🤖')
+st.title('IDP de papers cientificos 🤖')
 st.markdown(
     """
     Aqui vas a poder obtener un resultado del classificador de papers. 
@@ -26,6 +27,7 @@ def main():
     st.sidebar.success("Select a function.")
     file = st.file_uploader('Sube un paper cientifico', type = ['pdf'])
     if file != None:
+        msg = st.toast("Guardando documento 📝...")
         # Save the uploaded PDF file locally
         file_path = os.path.join("uploaded_files", file.name)
         if os.path.exists('uploaded_files'):
@@ -39,6 +41,8 @@ def main():
         object_key = f'papers/{file.name}'
         bucket_name = 'llm-showcase'
         s3.upload_file(file_path, bucket_name, object_key)
+        msg.toast("Documento guardado en S3 🗄️")
+        time.sleep(1)
         st.success(f"File {file.name} uploaded and saved successfully in S3!")
          
         # convert pdf to text and load paper
@@ -48,11 +52,16 @@ def main():
         # function_params = {"document": document}
         # call orquestrator lambda
         function_params = {"filename": file.name}
-        response = lambda_client.invoke(
-            FunctionName='LangchainOrquestrator',
-            Payload=json.dumps(function_params),
-        )
-        st.success(f"Response from lambda!")
+        msg.toast(f"Leyendo {file.name} 🧙‍♂️")
+        with st.spinner('Wait for it...'):
+            response = lambda_client.invoke(
+                FunctionName='LangchainOrquestrator',
+                Payload=json.dumps(function_params),
+            )
+        msg.toast("Interesante lectura 🤔...")
+        time.sleep(1)
+        msg.toast("Preparando resultado 🔧")
+        #st.success(f"Response from lambda!")
         
         # parse response
         response_json = json.load(response['Payload'])
