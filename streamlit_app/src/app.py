@@ -7,6 +7,9 @@ import json
 #from langchain_community.document_loaders import AmazonTextractPDFLoader
 import os
 import time
+from botocore.config import Config
+
+config = Config(read_timeout=900) # timeout for botocore de 5 min. Por defecto es 1 min.
 
 st.set_page_config(
     page_title="Biblioteca de papers",
@@ -19,7 +22,7 @@ st.markdown(
     """
 )
 
-lambda_client = boto3.client(region_name= 'us-east-1', service_name='lambda')
+lambda_client = boto3.client(region_name= 'us-east-1', service_name='lambda', config=config)
 s3 = boto3.client('s3')
 
 def main():
@@ -53,7 +56,7 @@ def main():
         # call orquestrator lambda
         function_params = {"filename": file.name}
         msg.toast(f"Leyendo {file.name} 🧙‍♂️")
-        with st.spinner('Wait for it...'):
+        with st.spinner(f'Leyendo {file.name} 🧙‍♂️...'):
             response = lambda_client.invoke(
                 FunctionName='LangchainOrquestrator',
                 Payload=json.dumps(function_params),

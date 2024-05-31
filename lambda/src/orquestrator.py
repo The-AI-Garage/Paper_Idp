@@ -1,6 +1,7 @@
 from tqdm.auto import tqdm
 import boto3
 import json
+from botocore.config import Config
 
 from langchain_aws import ChatBedrock
 from langchain.llms import Bedrock
@@ -17,7 +18,9 @@ from langchain_community.document_loaders import AmazonTextractPDFLoader
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from Prompts import examples, prompt_classification, suffix_template, prompt_keypoints
 
-bedrock = boto3.client(region_name= 'us-east-1', service_name='bedrock-runtime')
+config = Config(read_timeout=900) # timeout for botocore de 5 min. Por defecto es 1 min.
+
+bedrock = boto3.client(region_name= 'us-east-1', service_name='bedrock-runtime', config=config)
 
 def prompt_builder():
     example_prompt = PromptTemplate(
