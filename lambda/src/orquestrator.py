@@ -1,5 +1,6 @@
 from tqdm.auto import tqdm
 import boto3
+import json
 
 from langchain_aws import ChatBedrock
 from langchain.llms import Bedrock
@@ -50,7 +51,8 @@ def prompt_builder():
 
 def main (event, context):
     #convert pdf to text and load paper
-    file_name = event['Payload']['filename']
+    event_json = json.load(event['Payload'])
+    file_name = event_json['filename']
     file_s3_path = "s3://llm-showcase/papers/" + file_name
     loader = AmazonTextractPDFLoader(file_s3_path)
     document = loader.load()
