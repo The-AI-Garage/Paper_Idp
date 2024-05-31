@@ -52,24 +52,29 @@ def prompt_builder():
 def main (event, context):
     #convert pdf to text and load paper
     #event_json = json.load(event['Payload'])
+    print('event: ',event)
     file_name = event['filename']
+    print('file_name: ',file_name)
     file_s3_path = "s3://llm-showcase/papers/" + file_name
     loader = AmazonTextractPDFLoader(file_s3_path)
     document = loader.load()
-    
+    print('document: ',document)
     #document = event['Payload']['document']
     # summarize text
     bedrock_llm = ChatBedrock(client=bedrock, model_id="anthropic.claude-3-sonnet-20240229-v1:0")
     summary_chain = load_summarize_chain(llm=bedrock_llm, chain_type='map_reduce')
     summary = summary_chain.invoke(document)
+    print('summary: {}'.format(summary))
     # Build prompt
     prompt_cls, prompt_key = prompt_builder()
     # inference classification
     llm_chain = LLMChain(prompt=prompt_cls, llm=bedrock_llm)
     llm_response_clas = llm_chain.invoke(summary['output_text'])
+    print('llm_response_clas: {}'.format(llm_response_clas))
     # inference keypoints
     llm_chain2 = LLMChain(prompt=prompt_key, llm=bedrock_llm)
     llm_response_key = llm_chain2.invoke(document[0].page_content)
+    print('llm_response_key: {}'.format(llm_response_key))
 
     return {
         'statusCode': 200,
