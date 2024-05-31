@@ -56,8 +56,8 @@ def main():
         
         # parse response
         response_json = json.load(response['Payload'])
-        st.write('response', response)
-        st.write('response_json', response_json)
+        #st.write('response', response)
+        #st.write('response_json', response_json)
         llm_classifier_resp = response_json['llm_response_clas']
         llm_key_resp = response_json['llm_response_key']
         llm_summarization = response_json['summarization']
@@ -67,10 +67,10 @@ def main():
         extracted_author = re.findall("<author>(.*?)</author>", llm_key_resp['text'])
         extracted_title = re.findall("<title>(.*?)</title>", llm_key_resp['text'])
 
-        st.write('Categoria: ', classifier_output)
+        st.write('Categoria: ', classifier_output[0][0])
         st.write('Resumen: ', summarization_output)
-        st.write('Autor: ', extracted_author)
-        st.write('Titulo: ', extracted_title)
+        st.write('Autor: ', extracted_author[0][0])
+        st.write('Titulo: ', extracted_title[0][0])
 
 if __name__ == '__main__': 
     main()
