@@ -131,7 +131,7 @@ class CdkStack(Stack):
 
         # create a lambda function with docker
         #dockerfileDir = os.path.join('/', 'lambda')
-        dockerfileDir = 'lambda'
+        dockerfileDir = 'lambda/src/'
         lambda_function = aws_lambda.DockerImageFunction(self, 'LambdaDockerImage',
                                        code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir, 
                                                                         platform= aws_ecr_assets.Platform.LINUX_AMD64),
