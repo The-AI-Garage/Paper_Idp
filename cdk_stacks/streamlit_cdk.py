@@ -137,6 +137,7 @@ class CdkStack(Stack):
                                                                         platform= aws_ecr_assets.Platform.LINUX_AMD64),
                                        function_name='LangchainOrquestrator',
                                        timeout=Duration.minutes(15),
+                                       memory_size= 1024,
                                        vpc= vpc,
                                        role= lambda_role
                                        )
