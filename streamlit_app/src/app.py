@@ -1,13 +1,12 @@
 import streamlit as st
-from streamlit_feedback import streamlit_feedback
 import re
-from tqdm.auto import tqdm
 import boto3
 import json
 #from langchain_community.document_loaders import AmazonTextractPDFLoader
 import os
 import time
 from botocore.config import Config
+from langchain_community.document_loaders import AmazonTextractPDFLoader
 
 config = Config(read_timeout=900) # timeout for botocore de 5 min. Por defecto es 1 min.
 
@@ -56,8 +55,15 @@ def main():
         # call orquestrator lambda
         function_params = {"filename": file.name}
         msg.toast(f"Leyendo {file.name} 🧙‍♂️")
+        file_name = file.name
+        file_s3_path = "s3://llm-showcase/papers/" + file_name
         with st.spinner(f'Leyendo {file.name} 🧙‍♂️...'):
-            response = lambda_client.invoke(
+            loader = AmazonTextractPDFLoader(file_s3_path, region_name= 'us-east-1')
+            document = loader.load()
+            function_params = {"document": document}
+            #st.write(function_params)
+        with st.spinner(f'Interesante lectura 🤔... Extraigo más datos'):
+                response = lambda_client.invoke(
                 FunctionName='LangchainOrquestrator',
                 Payload=json.dumps(function_params),
             )

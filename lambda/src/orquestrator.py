@@ -54,15 +54,14 @@ def prompt_builder():
 
 def main (event, context):
     #convert pdf to text and load paper
-    #event_json = json.load(event['Payload'])
     print('event: ',event)
-    file_name = event['filename']
-    print('file_name: ',file_name)
-    file_s3_path = "s3://llm-showcase/papers/" + file_name
-    loader = AmazonTextractPDFLoader(file_s3_path, region_name= 'us-east-1')
-    document = loader.load()
-    print('document: ',document)
-    #document = event['Payload']['document']
+    # file_name = event['filename']
+    # print('file_name: ',file_name)
+    # file_s3_path = "s3://llm-showcase/papers/" + file_name
+    # loader = AmazonTextractPDFLoader(file_s3_path, region_name= 'us-east-1')
+    # document = loader.load()
+    # print('document: ',document)
+    document = event['document']
     # summarize text
     bedrock_llm = ChatBedrock(client=bedrock, model_id="anthropic.claude-3-sonnet-20240229-v1:0")
     summary_chain = load_summarize_chain(llm=bedrock_llm, chain_type='map_reduce')
