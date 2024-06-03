@@ -141,7 +141,7 @@ class CdkStack(Stack):
                                        vpc= vpc,
                                        role= lambda_role
                                        )
-        
+       
         # Add policies to task role
         fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(
             effect=iam.Effect.ALLOW,
