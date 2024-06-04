@@ -63,7 +63,7 @@ def main():
              )
 
         # get summary
-        with st.spinner(f'Preparon un resumen...'):
+        with st.spinner(f'Preparando resumen...'):
             response_summary = lambda_client.invoke(
                 FunctionName='LangchainSummary',
                 Payload=json.dumps(function_params_doc),
