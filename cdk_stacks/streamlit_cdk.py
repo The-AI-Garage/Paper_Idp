@@ -154,23 +154,23 @@ class CdkStack(Stack):
                                        role= lambda_role
                                        )
         
-        lambda_summary = aws_lambda.DockerImageFunction(self, 'Lambdasummarydocker',
-                                       code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir_3, 
-                                                                        platform= aws_ecr_assets.Platform.LINUX_AMD64),
-                                       function_name='LangchainSummary',
-                                       timeout=Duration.minutes(15),
-                                       memory_size= 1024,
-                                       vpc= vpc,
-                                       role= lambda_role
-                                       )
+        # lambda_summary = aws_lambda.DockerImageFunction(self, 'Lambdasummarydocker',
+        #                                code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir_3, 
+        #                                                                 platform= aws_ecr_assets.Platform.LINUX_AMD64),
+        #                                function_name='LangchainSummary',
+        #                                timeout=Duration.minutes(15),
+        #                                memory_size= 1024,
+        #                                vpc= vpc,
+        #                                role= lambda_role
+        #                                )
        
         # Add policies to task role
         fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(
             effect=iam.Effect.ALLOW,
             actions = ["lambda:InvokeFunction"],
             resources = [lambda_classifier.function_arn,
-                         lambda_keyinfo.function_arn,
-                         lambda_summary.function_arn],
+                         lambda_keyinfo.function_arn]
+                         #lambda_summary.function_arn],
             )
         )
         fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(
