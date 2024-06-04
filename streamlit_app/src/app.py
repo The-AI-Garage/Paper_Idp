@@ -48,43 +48,48 @@ def main():
         st.success(f"File {file.name} uploaded and saved successfully in S3!")
          
         # convert pdf to text and load paper
-        # file_s3_path = "s3://llm-showcase/papers/" + file.name 
-        # loader = AmazonTextractPDFLoader(file_s3_path)
-        # document = loader.load()
-        # function_params = {"document": document}
-        # call orquestrator lambda
-        function_params = {"filename": file.name}
+        #function_params = {"filename": file.name}
         msg.toast(f"Leyendo {file.name} 🧙‍♂️")
         file_name = file.name
         file_s3_path = "s3://llm-showcase/papers/" + file_name
         with st.spinner(f'Leyendo {file.name} 🧙‍♂️...'):
             loader = AmazonTextractPDFLoader(file_s3_path, region_name= 'us-east-1')
             document = loader.load()
-            function_params = {"document": document}
+            function_params_doc = {"document": document}
             #st.write(function_params)
-        with st.spinner(f'Interesante lectura 🤔... Extraigo más datos'):
-                response = lambda_client.invoke(
-                FunctionName='LangchainOrquestrator',
-                Payload=json.dumps(function_params),
-            )
-        msg.toast("Interesante lectura 🤔...")
-        time.sleep(1)
-        msg.toast("Preparando resultado 🔧")
-        #st.success(f"Response from lambda!")
-        
-        # parse response
-        response_json = json.load(response['Payload'])
-        #st.write('response', response)
-        #st.write('response_json', response_json)
-        llm_classifier_resp = response_json['llm_response_clas']
-        llm_key_resp = response_json['llm_response_key']
-        llm_summarization = response_json['summarization']
 
+        # get summary
+        with st.spinner(f'Interesante lectura 🤔... Preparon un resumen'):
+                response_summary = lambda_client.invoke(
+                FunctionName='LangchainSummary',
+                Payload=json.dumps(function_params_doc),
+            )
+        response_summary_json = json.load(response_summary['Payload'])
+        summarization_output = response_summary_json['summarization']
+
+        # get category
+        with st.spinner(f'Buscando la categoría para este artículo'):
+                response_classifier = lambda_client.invoke(
+                FunctionName='LangchainClassifier',
+                Payload=json.dumps(summarization_output),
+            )
+        response_classifier_json = json.load(response_classifier['Payload'])
+        llm_classifier_resp = response_classifier_json['llm_response_clas']
         classifier_output = re.findall("<label>(.*?)</label>", llm_classifier_resp['text'])
-        summarization_output = llm_summarization
+
+        # get keyinfo
+        with st.spinner(f'Extraigo más datos...'):
+                response_keyinfo = lambda_client.invoke(
+                FunctionName='LangchainKeyinfo',
+                Payload=json.dumps(function_params_doc),
+            )
+        response_keyinfo_json = json.load(response_keyinfo['Payload'])
+        llm_key_resp = response_keyinfo_json['llm_response_key']
         extracted_author = re.findall("<author>(.*?)</author>", llm_key_resp['text'])
         extracted_title = re.findall("<title>(.*?)</title>", llm_key_resp['text'])
 
+        msg.toast("Preparando resultado 🔧")
+        #st.success(f"Response from lambda!")
 
         st.write('**Categoria**: ', classifier_output[0])
         st.write('**Resumen**: ', summarization_output)
