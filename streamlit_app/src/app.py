@@ -7,19 +7,20 @@ import os
 import time
 from botocore.config import Config
 
-from langchain_aws import ChatBedrock
-from langchain.chains.summarize import load_summarize_chain
-
 config = Config(read_timeout=900) # timeout for botocore de 5 min. Por defecto es 1 min.
 
 st.set_page_config(
     page_title="Biblioteca de papers",
     page_icon="🤖",
     )
-st.title('IDP de papers cientificos 🤖')
+st.title('IDP Documentos Cientificos 🤖')
 st.markdown(
     """
-    Aqui vas a poder obtener un resultado del classificador de papers. 
+    Este es un demo de IDP destinado para la extracción de información de documentos cientificos.
+
+    
+    Entre las categorias de documentos que reconoce el algoritmo estan:
+    NLP, Objec detection, General ML, Recommenders y Neural Networks  
     """
 )
 
@@ -67,7 +68,7 @@ def main():
                 Payload=json.dumps({}),
              )
         response_summary_json = json.load(response_summary['Payload'])
-        #st.write(summary['output_text'])
+        st.write(response_summary_json)
         summarization_output = response_summary_json['summarization']
 
         # # get category

@@ -6,3 +6,4 @@ boto3
 botocore
 anthropic
 langchain-aws
+pypdf

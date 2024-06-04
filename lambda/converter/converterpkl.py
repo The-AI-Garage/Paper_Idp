@@ -15,6 +15,7 @@ def main (event, context):
     print('event: ',event)
     # get document
     document = event['document']
+    print('document_name: {}'.format(document))
     # dowload from s3
     paper_key =f'papers/{document}'
     file_local_path = '/tmp/paper.pdf'

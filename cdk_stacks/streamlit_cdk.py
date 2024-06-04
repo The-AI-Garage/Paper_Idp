@@ -134,6 +134,7 @@ class CdkStack(Stack):
         dockerfileDir_1 = 'lambda/classifier/'
         dockerfileDir_2 = 'lambda/keyinfo/'
         dockerfileDir_3 = 'lambda/summary/'
+        dockerfileDir_4 = 'lambda/converter/'
         lambda_classifier = aws_lambda.DockerImageFunction(self, 'Lambdaclassifierdocker',
                                        code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir_1, 
                                                                         platform= aws_ecr_assets.Platform.LINUX_AMD64),
@@ -164,7 +165,7 @@ class CdkStack(Stack):
                                        role= lambda_role
                                        )
         lambda_converter = aws_lambda.DockerImageFunction(self, 'Lambdaconverterdocker',
-                                       code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir_3, 
+                                       code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir_4, 
                                                                         platform= aws_ecr_assets.Platform.LINUX_AMD64),
                                        function_name='ConvertToPkl',
                                        timeout=Duration.minutes(15),
