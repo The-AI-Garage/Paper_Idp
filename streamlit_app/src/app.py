@@ -55,11 +55,14 @@ def main():
         file_s3_path = "s3://llm-showcase/papers/" + file_name
         with st.spinner(f'Leyendo {file.name} 🧙‍♂️...'):
             loader = AmazonTextractPDFLoader(file_s3_path, region_name= 'us-east-1')
+            object_key = f'document_loaders_assets/{str(loader)}'
+            s3.upload_file(loader, bucket_name, object_key)
             document = loader.load()
-        docs = [doc.page_content for doc in document]
-        function_params_doc = {"document": docs[:-1]}
+        function_params_doc = {'document': f'document_loaders_assets/{str(loader)}'}
+        #docs = [doc.page_content for doc in document]
+        #function_params_doc = {"document": docs[:-1]}
         #st.write(document)
-        #st.write(function_params_doc)
+        st.write(function_params_doc)
 
         # get summary
         with st.spinner(f'Interesante lectura 🤔... Preparon un resumen'):
