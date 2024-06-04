@@ -1,0 +1,8 @@
+LangChain
+altair==4.0
+langchain-community 
+langchain-core
+boto3
+botocore
+anthropic
+langchain-aws

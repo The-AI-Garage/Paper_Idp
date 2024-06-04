@@ -1,6 +1,4 @@
 LangChain
-faiss-cpu
-tqdm
 altair==4.0
 langchain-community 
 langchain-core
