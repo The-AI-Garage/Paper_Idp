@@ -18,8 +18,9 @@ st.markdown(
     """
     Este es un demo de IDP destinado para la extracción de información de documentos cientificos.
 
-    
+
     Entre las categorias de documentos que reconoce el algoritmo estan:
+    
     NLP, Objec detection, General ML, Recommenders y Neural Networks  
     """
 )
@@ -65,18 +66,18 @@ def main():
         with st.spinner(f'Interesante lectura 🤔... Preparon un resumen'):
             response_summary = lambda_client.invoke(
                 FunctionName='LangchainSummary',
-                Payload=json.dumps({}),
+                Payload=json.dumps(function_params_doc),
              )
         response_summary_json = json.load(response_summary['Payload'])
         st.write(response_summary_json)
         summarization_output = response_summary_json['summarization']
 
-        # # get category
-        function_params_doc = {'summary': summarization_output}
+        # get category
+        function_params_sum = {'summary': summarization_output}
         with st.spinner(f'Buscando la categoría para este artículo'):
             response_classifier = lambda_client.invoke(
                 FunctionName='LangchainClassifier',
-                Payload=json.dumps(function_params_doc),
+                Payload=json.dumps(function_params_sum),
              )
         response_classifier_json = json.load(response_classifier['Payload'])
         llm_classifier_resp = response_classifier_json['llm_response_clas']
@@ -86,7 +87,7 @@ def main():
         with st.spinner(f'Extraigo más datos...'):
             response_keyinfo = lambda_client.invoke(
                 FunctionName='LangchainKeyinfo',
-                Payload=json.dumps({}),
+                Payload=json.dumps(function_params_doc),
             )
         response_keyinfo_json = json.load(response_keyinfo['Payload'])
         llm_key_resp = response_keyinfo_json['llm_response_key']

@@ -22,16 +22,20 @@ def prompt_builder():
 
 
 def main (event, context):
-    #convert pdf to text and load paper
     print('event: ',event)
+    # get document
+    document = event['document']
     # get document
     s3_reso = boto3.resource('s3')
     bucket_name = 'llm-showcase'
-    paper_key ='document_loaders_assets/paper.pkl'
-    file_local_path = '/tmp/paper.pkl'
-    s3_reso.Object(bucket_name,paper_key).download_file(file_local_path)
+    paper_key_pkl ='document_loaders_assets/paper.pkl'
+    paper_key_pdf = f'papers/{document}'
+    file_pkl_path = '/tmp/paper.pkl'
+    file_pdf_path = '/tmp/paper.pdf'
+    s3_reso.Object(bucket_name,paper_key_pkl).download_file(file_pkl_path)
+    s3_reso.Object(bucket_name,paper_key_pdf).download_file(file_pdf_path)
     # get loader from pkl
-    with open(file_local_path, "rb") as infile:
+    with open(file_pkl_path, "rb") as infile:
         loader = pickle.load(infile)
     # load content
     document = loader.load()
