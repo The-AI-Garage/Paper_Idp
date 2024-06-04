@@ -7,5 +7,3 @@ langchain-community
 langchain-core
 pypdf
 Pillow
-amazon-textract-caller
-amazon-textract-textractor

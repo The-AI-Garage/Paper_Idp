@@ -6,8 +6,10 @@ import json
 import os
 import time
 from botocore.config import Config
-from langchain_community.document_loaders import AmazonTextractPDFLoader
-import base64
+from langchain_community.document_loaders import PyPDFLoader
+
+from langchain_aws import ChatBedrock
+from langchain.chains.summarize import load_summarize_chain
 
 config = Config(read_timeout=900) # timeout for botocore de 5 min. Por defecto es 1 min.
 
@@ -25,6 +27,10 @@ st.markdown(
 lambda_client = boto3.client(region_name= 'us-east-1', service_name='lambda', config=config)
 s3 = boto3.client('s3')
 
+config = Config(read_timeout=900) # timeout for botocore de 5 min. Por defecto es 1 min.
+
+bedrock = boto3.client(region_name= 'us-east-1', service_name='bedrock-runtime', config=config)
+
 def main():
     
     st.sidebar.success("Select a function.")
@@ -40,53 +46,43 @@ def main():
         with open(file_path, "wb") as f:
             f.write(file.getbuffer())
 
-        #upload to s3. (Amazontextract need to pull the document from s3 went it has multiple pages)
-        object_key = f'papers/{file.name}'
-        bucket_name = 'llm-showcase'
-        s3.upload_file(file_path, bucket_name, object_key)
-        msg.toast("Documento guardado en S3 🗄️")
-        time.sleep(1)
-        st.success(f"File {file.name} uploaded and saved successfully in S3!")
+        st.success(f"File {file.name} uploaded and saved successfully!")
          
         # convert pdf to text and load paper
         #function_params = {"filename": file.name}
         msg.toast(f"Leyendo {file.name} 🧙‍♂️")
-        file_name = file.name
-        file_s3_path = "s3://llm-showcase/papers/" + file_name
         with st.spinner(f'Leyendo {file.name} 🧙‍♂️...'):
-            loader = AmazonTextractPDFLoader(file_s3_path, region_name= 'us-east-1')
-            object_key = f'document_loaders_assets/{str(loader)}'
-            s3.upload_file(loader, bucket_name, object_key)
+            loader = PyPDFLoader(file_path)
             document = loader.load()
-        function_params_doc = {'document': f'document_loaders_assets/{str(loader)}'}
-        #docs = [doc.page_content for doc in document]
-        #function_params_doc = {"document": docs[:-1]}
-        #st.write(document)
-        st.write(function_params_doc)
 
         # get summary
         with st.spinner(f'Interesante lectura 🤔... Preparon un resumen'):
-                response_summary = lambda_client.invoke(
-                FunctionName='LangchainSummary',
-                Payload=json.dumps(function_params_doc)
-            )
-        response_summary_json = json.load(response_summary['Payload'])
-        st.write(response_summary_json)
-        summarization_output = response_summary_json['summarization']
+            bedrock_llm = ChatBedrock(client=bedrock, model_id="anthropic.claude-3-sonnet-20240229-v1:0")
+            summary_chain = load_summarize_chain(llm=bedrock_llm, chain_type='map_reduce')
+            summary = summary_chain.invoke(document)
+                
+        #st.write(summary['output_text'])
+        summarization_output = summary['output_text']
 
-        # get category
+        # # get category
+        function_params_doc = {'summary': summary['output_text']}
         with st.spinner(f'Buscando la categoría para este artículo'):
-                response_classifier = lambda_client.invoke(
+            response_classifier = lambda_client.invoke(
                 FunctionName='LangchainClassifier',
-                Payload=json.dumps(summarization_output),
-            )
+                Payload=json.dumps(function_params_doc),
+             )
         response_classifier_json = json.load(response_classifier['Payload'])
         llm_classifier_resp = response_classifier_json['llm_response_clas']
         classifier_output = re.findall("<label>(.*?)</label>", llm_classifier_resp['text'])
+        #st.write(classifier_output)
+        # response_classifier_json = json.load(response_classifier['Payload'])
+        # llm_classifier_resp = response_classifier_json['llm_response_clas']
+        # classifier_output = re.findall("<label>(.*?)</label>", llm_classifier_resp['text'])
 
         # get keyinfo
+        function_params_doc = {'document': document[0].page_content}
         with st.spinner(f'Extraigo más datos...'):
-                response_keyinfo = lambda_client.invoke(
+            response_keyinfo = lambda_client.invoke(
                 FunctionName='LangchainKeyinfo',
                 Payload=json.dumps(function_params_doc),
             )

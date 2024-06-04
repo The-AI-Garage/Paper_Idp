@@ -24,7 +24,7 @@ def main (event, context):
     #convert pdf to text and load paper
     print('event: ',event)
     # get document
-    document = event['summary']
+    document = event['document']
     # summarize text
     bedrock_llm = ChatBedrock(client=bedrock, model_id="anthropic.claude-3-sonnet-20240229-v1:0")
     # Build prompt
