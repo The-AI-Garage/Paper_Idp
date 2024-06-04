@@ -20,7 +20,7 @@ st.markdown(
 
 
     Entre las categorias de documentos que reconoce el algoritmo estan:
-    
+
     NLP, Objec detection, General ML, Recommenders y Neural Networks  
     """
 )
@@ -63,13 +63,13 @@ def main():
              )
 
         # get summary
-        with st.spinner(f'Interesante lectura 🤔... Preparon un resumen'):
+        with st.spinner(f'Preparon un resumen...'):
             response_summary = lambda_client.invoke(
                 FunctionName='LangchainSummary',
                 Payload=json.dumps(function_params_doc),
              )
         response_summary_json = json.load(response_summary['Payload'])
-        st.write(response_summary_json)
+        #st.write(response_summary_json)
         summarization_output = response_summary_json['summarization']
 
         # get category
