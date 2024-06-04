@@ -2,6 +2,7 @@ from tqdm.auto import tqdm
 import boto3
 import json
 from botocore.config import Config
+import pickle
 
 from langchain_aws import ChatBedrock
 from langchain.chains import LLMChain
@@ -24,7 +25,16 @@ def main (event, context):
     #convert pdf to text and load paper
     print('event: ',event)
     # get document
-    document = event['document']
+    s3_reso = boto3.resource('s3')
+    bucket_name = 'llm-showcase'
+    paper_key ='document_loaders_assets/paper.pkl'
+    file_local_path = '/tmp/paper.pkl'
+    s3_reso.Object(bucket_name,paper_key).download_file(file_local_path)
+    # get loader from pkl
+    with open(file_local_path, "rb") as infile:
+        loader = pickle.load(infile)
+    # load content
+    document = loader.load()
     # summarize text
     bedrock_llm = ChatBedrock(client=bedrock, model_id="anthropic.claude-3-sonnet-20240229-v1:0")
     # Build prompt

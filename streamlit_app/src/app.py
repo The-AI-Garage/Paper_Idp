@@ -6,7 +6,6 @@ import json
 import os
 import time
 from botocore.config import Config
-from langchain_community.document_loaders import PyPDFLoader
 
 from langchain_aws import ChatBedrock
 from langchain.chains.summarize import load_summarize_chain
@@ -46,26 +45,33 @@ def main():
         with open(file_path, "wb") as f:
             f.write(file.getbuffer())
 
+        # upload to s3
+        object_key = f'papers/{file.name}'
+        bucket_name = 'llm-showcase'
+        s3.upload_file(file_path, bucket_name, object_key)
         st.success(f"File {file.name} uploaded and saved successfully!")
          
-        # convert pdf to text and load paper
-        #function_params = {"filename": file.name}
+        # convert to pkl and text 
         msg.toast(f"Leyendo {file.name} 🧙‍♂️")
+        function_params_doc = {'document': file.name}
         with st.spinner(f'Leyendo {file.name} 🧙‍♂️...'):
-            loader = PyPDFLoader(file_path)
-            document = loader.load()
+            response = lambda_client.invoke(
+                FunctionName='ConvertToPkl',
+                Payload=json.dumps(function_params_doc),
+             )
 
         # get summary
         with st.spinner(f'Interesante lectura 🤔... Preparon un resumen'):
-            bedrock_llm = ChatBedrock(client=bedrock, model_id="anthropic.claude-3-sonnet-20240229-v1:0")
-            summary_chain = load_summarize_chain(llm=bedrock_llm, chain_type='map_reduce')
-            summary = summary_chain.invoke(document)
-                
+            response_summary = lambda_client.invoke(
+                FunctionName='LangchainSummary',
+                Payload=json.dumps({}),
+             )
+        response_summary_json = json.load(response_summary['Payload'])
         #st.write(summary['output_text'])
-        summarization_output = summary['output_text']
+        summarization_output = response_summary_json['summarization']
 
         # # get category
-        function_params_doc = {'summary': summary['output_text']}
+        function_params_doc = {'summary': summarization_output}
         with st.spinner(f'Buscando la categoría para este artículo'):
             response_classifier = lambda_client.invoke(
                 FunctionName='LangchainClassifier',
@@ -74,17 +80,12 @@ def main():
         response_classifier_json = json.load(response_classifier['Payload'])
         llm_classifier_resp = response_classifier_json['llm_response_clas']
         classifier_output = re.findall("<label>(.*?)</label>", llm_classifier_resp['text'])
-        #st.write(classifier_output)
-        # response_classifier_json = json.load(response_classifier['Payload'])
-        # llm_classifier_resp = response_classifier_json['llm_response_clas']
-        # classifier_output = re.findall("<label>(.*?)</label>", llm_classifier_resp['text'])
 
         # get keyinfo
-        function_params_doc = {'document': document[0].page_content}
         with st.spinner(f'Extraigo más datos...'):
             response_keyinfo = lambda_client.invoke(
                 FunctionName='LangchainKeyinfo',
-                Payload=json.dumps(function_params_doc),
+                Payload=json.dumps({}),
             )
         response_keyinfo_json = json.load(response_keyinfo['Payload'])
         llm_key_resp = response_keyinfo_json['llm_response_key']
