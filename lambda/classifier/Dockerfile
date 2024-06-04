@@ -7,4 +7,4 @@ COPY Prompts.py ${LAMBDA_TASK_ROOT}
 # install dependencies
 RUN pip3 install -r requirements.txt
 # Set the CMD to your handler
-CMD [ "orquestrator.main" ]
+CMD [ "classifier.main" ]

@@ -7,6 +7,7 @@ import os
 import time
 from botocore.config import Config
 from langchain_community.document_loaders import AmazonTextractPDFLoader
+import base64
 
 config = Config(read_timeout=900) # timeout for botocore de 5 min. Por defecto es 1 min.
 
@@ -55,16 +56,19 @@ def main():
         with st.spinner(f'Leyendo {file.name} 🧙‍♂️...'):
             loader = AmazonTextractPDFLoader(file_s3_path, region_name= 'us-east-1')
             document = loader.load()
-            function_params_doc = {"document": document}
-            #st.write(function_params)
+        docs = [doc.page_content for doc in document]
+        function_params_doc = {"document": docs[:-1]}
+        #st.write(document)
+        #st.write(function_params_doc)
 
         # get summary
         with st.spinner(f'Interesante lectura 🤔... Preparon un resumen'):
                 response_summary = lambda_client.invoke(
                 FunctionName='LangchainSummary',
-                Payload=json.dumps(function_params_doc),
+                Payload=json.dumps(function_params_doc)
             )
         response_summary_json = json.load(response_summary['Payload'])
+        st.write(response_summary_json)
         summarization_output = response_summary_json['summarization']
 
         # get category
