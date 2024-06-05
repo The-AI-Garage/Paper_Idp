@@ -71,6 +71,7 @@ def main():
         response_summary_json = json.load(response_summary['Payload'])
         #st.write(response_summary_json)
         summarization_output = response_summary_json['summarization']
+        st.write('**Resumen**: ', summarization_output)
 
         # get category
         function_params_sum = {'summary': summarization_output}
@@ -82,6 +83,7 @@ def main():
         response_classifier_json = json.load(response_classifier['Payload'])
         llm_classifier_resp = response_classifier_json['llm_response_clas']
         classifier_output = re.findall("<label>(.*?)</label>", llm_classifier_resp['text'])
+        st.write('**Categoria**: ', classifier_output[0])
 
         # get keyinfo
         with st.spinner(f'Extraigo más datos...'):
@@ -94,11 +96,11 @@ def main():
         extracted_author = re.findall("<author>(.*?)</author>", llm_key_resp['text'])
         extracted_title = re.findall("<title>(.*?)</title>", llm_key_resp['text'])
 
-        msg.toast("Preparando resultado 🔧")
+        #msg.toast("Preparando resultado 🔧")
         #st.success(f"Response from lambda!")
 
-        st.write('**Categoria**: ', classifier_output[0])
-        st.write('**Resumen**: ', summarization_output)
+        #st.write('**Categoria**: ', classifier_output[0])
+        #st.write('**Resumen**: ', summarization_output)
         st.write('**Autor**: ', extracted_author[0])
         st.write('**Titulo**: ', extracted_title[0])
 
