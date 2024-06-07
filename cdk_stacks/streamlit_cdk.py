@@ -137,6 +137,7 @@ class CdkStack(Stack):
         dockerfileDir_2 = 'lambda/keyinfo/'
         dockerfileDir_3 = 'lambda/summary/'
         dockerfileDir_4 = 'lambda/converter/'
+        dockerfileDir_5 = 'lambda/store/'
         lambda_classifier = aws_lambda.DockerImageFunction(self, 'Lambdaclassifierdocker',
                                        code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir_1, 
                                                                         platform= aws_ecr_assets.Platform.LINUX_AMD64),
@@ -192,7 +193,76 @@ class CdkStack(Stack):
                                             )
                                             ) 
 
-       
+        # Policy for lambda function storing metadata
+        lambda_policy_doc_2 = iam.PolicyDocument(
+            statements=[
+                # ec2 network policy
+                iam.PolicyStatement(
+                    actions=[
+                        "ec2:DescribeInstances",
+                        "ec2:CreateNetworkInterface",
+                        "ec2:AttachNetworkInterface",
+                        "ec2:DescribeNetworkInterfaces",
+                        "autoscaling:CompleteLifecycleAction",
+                        "ec2:DeleteNetworkInterface"
+                        ],
+                    effect=iam.Effect.ALLOW,
+                    resources=['*']
+                ),
+                # s3 policy
+                iam.PolicyStatement(
+                    actions=[
+                        "s3:GetObject",
+                        "s3:GetBucketLocation",
+                        "s3:ListBucket",
+                        "s3:ListBucketMultipartUploads",
+                        "s3:ListMultipartUploadParts",
+                        "s3:PutObject"
+                        ],
+                    effect=iam.Effect.ALLOW,
+                    resources=["arn:aws:s3:::llm-showcase", "arn:aws:s3:::llm-showcase/*"]
+                ),
+                # DynamoDB policy
+                iam.PolicyStatement(
+                    actions=[
+                        "dynamodb:BatchGet*",
+                        "dynamodb:DescribeStream",
+                        "dynamodb:DescribeTable",
+                        "dynamodb:Get*",
+                        "dynamodb:Query",
+                        "dynamodb:Scan",
+                        "dynamodb:BatchWrite*",
+                        "dynamodb:CreateTable",
+                        "dynamodb:Update*",
+                        "dynamodb:PutItem"
+                        ],
+                    effect=iam.Effect.ALLOW,
+                    resources=[dynamodb_table.table_arn]
+                )
+            ]
+        )
+        lambda_policy_2 = iam.Policy(self,
+                                   'lambda-permissions-storeMet',
+                                   document=lambda_policy_doc_2,
+                                   policy_name='policy-for-lambda-storeMet')
+        lambda_role_2 = iam.Role(self,
+                               'lambda-role-storeMet',
+                               assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
+                               role_name='role-for-lambda-storeMet')
+        
+        lambda_role_2.attach_inline_policy(lambda_policy_2)
+
+        # lambda for storing metadata
+        lambda_storing = aws_lambda.DockerImageFunction(self, 'Lambdastoringdocker',
+                                       code= aws_lambda.DockerImageCode.from_image_asset(dockerfileDir_5, 
+                                                                        platform= aws_ecr_assets.Platform.LINUX_AMD64),
+                                       function_name='StoreInfo',
+                                       timeout=Duration.minutes(15),
+                                       memory_size= 1024,
+                                       vpc= vpc,
+                                       role= lambda_role_2
+                                       )
+
         # Add policies to task role
         fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(
             effect=iam.Effect.ALLOW,
@@ -200,7 +270,8 @@ class CdkStack(Stack):
             resources = [lambda_classifier.function_arn,
                          lambda_keyinfo.function_arn,
                          lambda_summary.function_arn,
-                         lambda_converter.function_arn],
+                         lambda_converter.function_arn,
+                         lambda_storing.function_arn],
             )
         )
         fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(

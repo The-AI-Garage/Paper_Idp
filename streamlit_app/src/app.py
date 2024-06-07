@@ -109,7 +109,7 @@ def main():
             }
         }
         lambda_client.invoke(
-            FunctionName='storeinfo',
+            FunctionName='StoreInfo',
             Payload=json.dumps(function_param_store),
             )
         st.success(f"Data stored in DynamoDB!")
