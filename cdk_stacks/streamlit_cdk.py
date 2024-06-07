@@ -7,7 +7,9 @@ from aws_cdk import (
     Stack,
     Duration,
     aws_ecr_assets,
-    aws_lambda
+    aws_lambda,
+    aws_dynamodb,
+    RemovalPolicy
 )
 from constructs import Construct
 import os
@@ -173,6 +175,23 @@ class CdkStack(Stack):
                                        vpc= vpc,
                                        role= lambda_role
                                        )
+        
+        # Adding DynamoDB table to save paper metadata
+        dynamodb_table = aws_dynamodb.Table(self, 
+                                            "DynamoDBMeta",
+                                            table_name='Papers_idp',
+                                            partition_key= aws_dynamodb.Attribute(
+                                                name='PaperClass',
+                                                type=aws_dynamodb.AttributeType.STRING
+                                            ),
+                                            billing_mode=aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+                                            removal_policy=RemovalPolicy.DESTROY,
+                                            sort_key= aws_dynamodb.Attribute(
+                                                name='CreatedAt',
+                                                type=aws_dynamodb.AttributeType.NUMBER
+                                            )
+                                            ) 
+
        
         # Add policies to task role
         fargate_service.task_definition.add_to_task_role_policy(iam.PolicyStatement(
