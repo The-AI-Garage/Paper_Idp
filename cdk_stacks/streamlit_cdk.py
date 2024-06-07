@@ -179,7 +179,7 @@ class CdkStack(Stack):
         # Adding DynamoDB table to save paper metadata
         dynamodb_table = aws_dynamodb.Table(self, 
                                             "DynamoDBMeta",
-                                            table_name='Papers_idp',
+                                            table_name='PapersIdp',
                                             partition_key= aws_dynamodb.Attribute(
                                                 name='PaperClass',
                                                 type=aws_dynamodb.AttributeType.STRING

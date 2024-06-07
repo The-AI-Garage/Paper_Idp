@@ -96,13 +96,23 @@ def main():
         extracted_author = re.findall("<author>(.*?)</author>", llm_key_resp['text'])
         extracted_title = re.findall("<title>(.*?)</title>", llm_key_resp['text'])
 
-        #msg.toast("Preparando resultado 🔧")
-        #st.success(f"Response from lambda!")
-
-        #st.write('**Categoria**: ', classifier_output[0])
-        #st.write('**Resumen**: ', summarization_output)
         st.write('**Autor**: ', extracted_author[0])
         st.write('**Titulo**: ', extracted_title[0])
+
+        # send results to dynamo
+        function_param_store = {
+            'item':{
+                'summary': summarization_output,
+                'class': classifier_output[0],
+                'author': extracted_author[0],
+                'title': extracted_title[0]
+            }
+        }
+        lambda_client.invoke(
+            FunctionName='storeinfo',
+            Payload=json.dumps(function_param_store),
+            )
+        st.success(f"Data stored in DynamoDB!")
 
 if __name__ == '__main__': 
     main()
