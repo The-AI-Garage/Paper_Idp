@@ -100,19 +100,27 @@ def main():
         st.write('**Titulo**: ', extracted_title[0])
 
         # send results to dynamo
+        s3_obj_url = f'https://{bucket_name}.s3.amazonaws.com/{object_key}'
         function_param_store = {
             'item':{
                 'summary': summarization_output,
                 'class': classifier_output[0],
                 'author': extracted_author[0],
-                'title': extracted_title[0]
+                'title': extracted_title[0],
+                's3Url': s3_obj_url
             }
         }
+        msg = st.toast("Guardando datos en DB 📝...")
         lambda_client.invoke(
             FunctionName='StoreInfo',
             Payload=json.dumps(function_param_store),
             )
         st.success(f"Data stored in DynamoDB!")
+
+        # clean local FS
+        msg = st.toast("Limpiando espacio de trabajo 🌪️...")
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 if __name__ == '__main__': 
     main()

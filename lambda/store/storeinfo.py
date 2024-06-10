@@ -18,8 +18,9 @@ def main(event, context):
             'PaperClass':result_item['class'],    # primary key
             'CreatedAt':date,                     # sort key
             'Title':result_item['title'],         # attribute 1
-            'author':result_item['author'],       # attribute 2
-            'summary':result_item['summary'],     # attribute 3
+            'Author':result_item['author'],       # attribute 2
+            'Summary':result_item['summary'],     # attribute 3
+            'S3Object': result_item['s3Url']
         }
             )
     return {
