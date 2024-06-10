@@ -111,11 +111,18 @@ def main():
             }
         }
         msg = st.toast("Guardando datos en DB 📝...")
-        lambda_client.invoke(
+        response_store = lambda_client.invoke(
             FunctionName='StoreInfo',
             Payload=json.dumps(function_param_store),
             )
-        st.success(f"Data stored in DynamoDB!")
+        #st.write(response_store)
+        response_store_json = json.load(response_store['Payload'])
+        #st.write(response_store_json)
+        # Comprobando si se guardo correctamente en dynamo
+        if response_store_json['statusCode']:
+            st.success(f"Data stored in DynamoDB!")
+        else:
+            st.error('Data error. Could not store successfully in DB')
 
         # clean local FS
         msg = st.toast("Limpiando espacio de trabajo 🌪️...")
