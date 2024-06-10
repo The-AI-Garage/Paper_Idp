@@ -14,3 +14,6 @@
 
 ## App final result
 ![final](images/idp_recomender.png)
+
+## DynamoDB stored data extracted
+![final](images/dynamoItem.png)
