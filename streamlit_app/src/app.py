@@ -1,7 +1,5 @@
 import streamlit as st
-from streamlit_feedback import streamlit_feedback
 import re
-from tqdm.auto import tqdm
 import boto3
 import json
 #from langchain_community.document_loaders import AmazonTextractPDFLoader
@@ -15,15 +13,24 @@ st.set_page_config(
     page_title="Biblioteca de papers",
     page_icon="🤖",
     )
-st.title('IDP de papers cientificos 🤖')
+st.title('IDP Documentos Cientificos 🤖')
 st.markdown(
     """
-    Aqui vas a poder obtener un resultado del classificador de papers. 
+    Este es un demo de IDP destinado para la extracción de información de documentos cientificos.
+
+
+    Entre las categorias de documentos que reconoce el algoritmo estan:
+
+    NLP, Objec detection, General ML, Recommenders y Neural Networks  
     """
 )
 
 lambda_client = boto3.client(region_name= 'us-east-1', service_name='lambda', config=config)
 s3 = boto3.client('s3')
+
+config = Config(read_timeout=900) # timeout for botocore de 5 min. Por defecto es 1 min.
+
+bedrock = boto3.client(region_name= 'us-east-1', service_name='bedrock-runtime', config=config)
 
 def main():
     
@@ -40,50 +47,87 @@ def main():
         with open(file_path, "wb") as f:
             f.write(file.getbuffer())
 
-        #upload to s3. (Amazontextract need to pull the document from s3 went it has multiple pages)
+        # upload to s3
         object_key = f'papers/{file.name}'
         bucket_name = 'llm-showcase'
         s3.upload_file(file_path, bucket_name, object_key)
-        msg.toast("Documento guardado en S3 🗄️")
-        time.sleep(1)
-        st.success(f"File {file.name} uploaded and saved successfully in S3!")
+        st.success(f"File {file.name} uploaded and saved successfully!")
          
-        # convert pdf to text and load paper
-        # file_s3_path = "s3://llm-showcase/papers/" + file.name 
-        # loader = AmazonTextractPDFLoader(file_s3_path)
-        # document = loader.load()
-        # function_params = {"document": document}
-        # call orquestrator lambda
-        function_params = {"filename": file.name}
+        # convert to pkl and text 
         msg.toast(f"Leyendo {file.name} 🧙‍♂️")
+        function_params_doc = {'document': file.name}
         with st.spinner(f'Leyendo {file.name} 🧙‍♂️...'):
             response = lambda_client.invoke(
-                FunctionName='LangchainOrquestrator',
-                Payload=json.dumps(function_params),
-            )
-        msg.toast("Interesante lectura 🤔...")
-        time.sleep(1)
-        msg.toast("Preparando resultado 🔧")
-        #st.success(f"Response from lambda!")
-        
-        # parse response
-        response_json = json.load(response['Payload'])
-        #st.write('response', response)
-        #st.write('response_json', response_json)
-        llm_classifier_resp = response_json['llm_response_clas']
-        llm_key_resp = response_json['llm_response_key']
-        llm_summarization = response_json['summarization']
+                FunctionName='ConvertToPkl',
+                Payload=json.dumps(function_params_doc),
+             )
 
+        # get summary
+        with st.spinner(f'Preparando resumen...'):
+            response_summary = lambda_client.invoke(
+                FunctionName='LangchainSummary',
+                Payload=json.dumps(function_params_doc),
+             )
+        response_summary_json = json.load(response_summary['Payload'])
+        #st.write(response_summary_json)
+        summarization_output = response_summary_json['summarization']
+        st.write('**Resumen**: ', summarization_output)
+
+        # get category
+        function_params_sum = {'summary': summarization_output}
+        with st.spinner(f'Buscando la categoría para este artículo'):
+            response_classifier = lambda_client.invoke(
+                FunctionName='LangchainClassifier',
+                Payload=json.dumps(function_params_sum),
+             )
+        response_classifier_json = json.load(response_classifier['Payload'])
+        llm_classifier_resp = response_classifier_json['llm_response_clas']
         classifier_output = re.findall("<label>(.*?)</label>", llm_classifier_resp['text'])
-        summarization_output = llm_summarization
+        st.write('**Categoria**: ', classifier_output[0])
+
+        # get keyinfo
+        with st.spinner(f'Extraigo más datos...'):
+            response_keyinfo = lambda_client.invoke(
+                FunctionName='LangchainKeyinfo',
+                Payload=json.dumps(function_params_doc),
+            )
+        response_keyinfo_json = json.load(response_keyinfo['Payload'])
+        llm_key_resp = response_keyinfo_json['llm_response_key']
         extracted_author = re.findall("<author>(.*?)</author>", llm_key_resp['text'])
         extracted_title = re.findall("<title>(.*?)</title>", llm_key_resp['text'])
 
-
-        st.write('**Categoria**: ', classifier_output[0])
-        st.write('**Resumen**: ', summarization_output)
         st.write('**Autor**: ', extracted_author[0])
         st.write('**Titulo**: ', extracted_title[0])
+
+        # send results to dynamo
+        s3_obj_url = f'https://{bucket_name}.s3.amazonaws.com/{object_key}'
+        function_param_store = {
+            'item':{
+                'summary': summarization_output,
+                'class': classifier_output[0],
+                'author': extracted_author[0],
+                'title': extracted_title[0],
+                's3Url': s3_obj_url
+            }
+        }
+        msg = st.toast("Guardando datos en DB 📝...")
+        response_store = lambda_client.invoke(
+            FunctionName='StoreInfo',
+            Payload=json.dumps(function_param_store),
+            )
+        #st.write(response_store)
+        response_store_json = json.load(response_store['Payload'])
+        #st.write(response_store_json)
+        # Comprobando si se guardo correctamente en dynamo
+        if response_store_json['statusCode']:
+            st.success(f"Data stored in DynamoDB!")
+        else:
+            st.error('Data error. Could not store successfully in DB')
+
+        # clean local FS
+        msg = st.toast("Limpiando espacio de trabajo 🌪️...")
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 if __name__ == '__main__': 
     main()

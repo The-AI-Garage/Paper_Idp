@@ -1,14 +1,9 @@
 LangChain
 faiss-cpu
-tqdm
 altair==4.0
 langchain-community 
 langchain-core
 boto3
 botocore
-amazon-textract-caller
-amazon-textract-textractor
 anthropic
 langchain-aws
-pypdf
-Pillow

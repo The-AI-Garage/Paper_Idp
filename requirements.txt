@@ -17,3 +17,4 @@ amazon-textract-caller
 amazon-textract-textractor
 anthropic
 langchain-aws
+pypdf
