@@ -1,7 +1,7 @@
 # Paper_Idp
 
 ## Architecture
-![architecture](images/showcase_paper_idp.drawio.png)
+![architecture](images/showcase_paper_idp.drawio (1).png)
 
 ## App Initial screen
 ![initscreen](images/idp_pantalla_principal.png)
