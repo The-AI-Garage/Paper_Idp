@@ -4,16 +4,13 @@
 ![architecture](images/showcase_paper_idp.drawio.png)
 
 ## App Initial screen
-![initscreen](images/idp_pantalla_principal.png)
+![initscreen](images/pantalla_inicial.png)
 
 ## App loading paper
-![loadpaper](images/idp_barra_cargado.png)
-
-## App reading document
-![reading](images/idp_leyendo_documento.png)
+![loadpaper](images/pantalla_loading_doc.png)
 
 ## App final result
-![final](images/idp_recomender.png)
+![final](images/pantalla_final.png)
 
 ## DynamoDB stored data extracted
 ![final](images/dynamoItem.png)
